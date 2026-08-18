@@ -3,46 +3,51 @@
 #include <string>
 using namespace std;
 
-// Function to register a new user
-void registerUser()
-{
+bool usernameExists(string username) {
+    ifstream file("users.txt");
+
+    string storedUsername, storedPassword;
+
+    while (file >> storedUsername >> storedPassword) {
+        if (storedUsername == username) {
+            file.close();
+            return true;
+        }
+    }
+
+    file.close();
+    return false;
+}
+
+void registerUser() {
     string username, password;
-    
+
     cout << "\n===== REGISTRATION =====\n";
 
     cout << "Enter Username: ";
     cin >> username;
 
+    if (usernameExists(username)) {
+        cout << "Username already exists!\n";
+        return;
+    }
+
     cout << "Enter Password: ";
     cin >> password;
 
-    // Check whether the username already exists
-    ifstream file("users.txt");
-    string storedUsername, storedPassword;
+    ofstream file("users.txt", ios::app);
 
-    while (file >> storedUsername >> storedPassword)
-    {
-        if (storedUsername == username)
-        {
-            cout << "\nUsername already exists!\n";
-            file.close();
-            return;
-        }
+    if (file.is_open()) {
+        file << username << " " << password << endl;
+        file.close();
+
+        cout << "Registration successful!\n";
+    } else {
+        cout << "Error opening users.txt!\n";
     }
-
-    file.close();
-
-    // Store the new user's credentials
-    ofstream outFile("users.txt", ios::app);
-    outFile << username << " " << password << endl;
-    outFile.close();
-
-    cout << "\nRegistration successful!\n";
 }
 
-// Function to login an existing user
-void loginUser()
-{
+void loginUser() {
     string username, password;
     string storedUsername, storedPassword;
 
@@ -54,61 +59,60 @@ void loginUser()
     cout << "Enter Password: ";
     cin >> password;
 
-    // Read stored credentials and verify the user
     ifstream file("users.txt");
 
-    while (file >> storedUsername >> storedPassword)
-    {
-        if (storedUsername == username && storedPassword == password)
-        {
-            cout << "\nLogin successful!\n";
-            cout << "Welcome, " << username << "!\n";
-            file.close();
-            return;
+    bool loginSuccessful = false;
+
+    while (file >> storedUsername >> storedPassword) {
+        if (storedUsername == username && storedPassword == password) {
+            loginSuccessful = true;
+            break;
         }
     }
 
     file.close();
 
-    cout << "\nInvalid username or password!\n";
+    if (loginSuccessful) {
+        cout << "\nLogin successful!\n";
+        cout << "Welcome, " << username << "!\n";
+    } else {
+        cout << "\nInvalid username or password!\n";
+    }
 }
 
-// Main function
-int main()
-{
+int main() {
     int choice;
 
-    cout << "========================================\n";
-    cout << "      LOGIN & REGISTRATION SYSTEM\n";
-    cout << "========================================\n";
+    do {
+        cout << "\n============================\n";
+        cout << " LOGIN & REGISTRATION SYSTEM\n";
+        cout << "============================\n";
 
-    while (true)
-    {
-        cout << "\n1. Register\n";
+        cout << "1. Register\n";
         cout << "2. Login\n";
         cout << "3. Exit\n";
 
         cout << "\nEnter your choice: ";
         cin >> choice;
 
-        if (choice == 1)
-        {
-            registerUser();
+        switch (choice) {
+            case 1:
+                registerUser();
+                break;
+
+            case 2:
+                loginUser();
+                break;
+
+            case 3:
+                cout << "\nThank you for using the system!\n";
+                break;
+
+            default:
+                cout << "\nInvalid choice! Please try again.\n";
         }
-        else if (choice == 2)
-        {
-            loginUser();
-        }
-        else if (choice == 3)
-        {
-            cout << "\nThank you for using the system!\n";
-            break;
-        }
-        else
-        {
-            cout << "\nInvalid choice! Please select 1, 2, or 3.\n";
-        }
-    }
+
+    } while (choice != 3);
 
     return 0;
 }
